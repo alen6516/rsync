@@ -1,0 +1,31 @@
+#!/bin/bash
+
+date=$(date +"%Y%m%d")
+date1month=$(date --date="1 month ago" +"%Y%m%d")
+
+remote_backup_path=""
+local_backup_path="/tmp"
+server_ip=""
+password=""
+port=""
+user=""
+
+mysql_account=""
+mysql_password=""
+database1="database_name"
+
+# rsync 將web免密碼備份到備份主機
+echo $password | sudo -S rsync -avzhi --delete -e "ssh -p $port -i /home/$user/.ssh/id_rsa" /var/www/html $user@$server_ip:$remote_backup_path
+
+# dump 出sql檔
+mysqldump --databases $目錄名稱 -u $mysql_account -p$mysql_password > $local_backup_path/$date.sql
+
+# rsync 將sql檔備份到到備份主機
+rsync -avzhi -e "ssh -p $port" $local_backup_path/$date.sql $user@$server_ip:$remote_backup_path/sql/
+
+# 刪除 server 一個月以前的sql檔 
+#ssh -p $port $user@$server_ip "rm $remote_backup_path/sql/$date1month.sql" 
+ssh -p $port $user@$server_ip ". $remote_backup_path/sql/del_sql.sh"
+
+
+                                                                                                                                                   3,18          33%
